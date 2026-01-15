@@ -1,6 +1,6 @@
 /* ===== CSS Variables ===== */
 :root {
-    /* Colors - будут переопределены Telegram */
+    /* Colors - will be overridden by Telegram */
     --tg-theme-bg-color: #ffffff;
     --tg-theme-text-color: #000000;
     --tg-theme-hint-color: #999999;
@@ -597,7 +597,7 @@ body.dark-theme {
     --gray-300: #3a3a3c;
 }
 
-/* ===== Success Modal (для режима отладки) ===== */
+/* ===== Success Modal (for debug mode) ===== */
 .success-modal {
     position: fixed;
     top: 0;

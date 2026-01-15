@@ -1,5 +1,5 @@
 """
-Главный файл бота
+Main bot file
 """
 import asyncio
 import logging
@@ -10,7 +10,7 @@ from aiogram.client.default import DefaultBotProperties
 from bot.config import config
 from bot.handlers import setup_routers
 
-# Настройка логирования
+# Logging configuration
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -23,66 +23,66 @@ logger = logging.getLogger(__name__)
 
 
 async def on_startup(bot: Bot) -> None:
-    """Действия при запуске бота"""
+    """Actions on bot startup"""
     bot_info = await bot.get_me()
-    logger.info(f"🚀 Бот @{bot_info.username} запущен!")
+    logger.info(f"🚀 Bot @{bot_info.username} started!")
     
-    # Уведомление админу о запуске
+    # Notification to admin about startup
     try:
         await bot.send_message(
             chat_id=config.admin_id,
-            text="🟢 Бот успешно запущен и готов к работе!"
+            text="🟢 Bot successfully started and ready to work!"
         )
     except Exception as e:
-        logger.warning(f"Не удалось отправить уведомление админу: {e}")
+        logger.warning(f"Failed to send notification to admin: {e}")
 
 
 async def on_shutdown(bot: Bot) -> None:
-    """Действия при остановке бота"""
-    logger.info("🔴 Бот остановлен")
+    """Actions on bot shutdown"""
+    logger.info("🔴 Bot stopped")
     
     try:
         await bot.send_message(
             chat_id=config.admin_id,
-            text="🔴 Бот остановлен"
+            text="🔴 Bot stopped"
         )
     except Exception:
         pass
 
 
 async def main() -> None:
-    """Главная функция"""
+    """Main function"""
     
-    # Проверка конфигурации
+    # Check configuration
     if not config.bot_token:
-        logger.error("❌ BOT_TOKEN не указан в .env файле!")
+        logger.error("❌ BOT_TOKEN not specified in .env file!")
         return
     
     if not config.admin_id:
-        logger.warning("⚠️ ADMIN_ID не указан, уведомления админу отключены")
+        logger.warning("⚠️ ADMIN_ID not specified, admin notifications disabled")
     
     if not config.webapp_url:
-        logger.error("❌ WEBAPP_URL не указан в .env файле!")
+        logger.error("❌ WEBAPP_URL not specified in .env file!")
         return
     
-    # Инициализация бота
+    # Initialize bot
     bot = Bot(
         token=config.bot_token,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
     
-    # Инициализация диспетчера
+    # Initialize dispatcher
     dp = Dispatcher()
     
-    # Регистрация роутеров
+    # Register routers
     dp.include_router(setup_routers())
     
-    # Регистрация событий
+    # Register events
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
     
-    # Запуск бота
-    logger.info("🔄 Запуск бота...")
+    # Start bot
+    logger.info("🔄 Starting bot...")
     
     try:
         await dp.start_polling(
@@ -97,4 +97,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        logger.info("Бот остановлен пользователем")
+        logger.info("Bot stopped by user")

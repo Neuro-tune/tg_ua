@@ -1,30 +1,30 @@
 @echo off
 chcp 65001 > nul
-title Бот Записи Клиентов (НЕ ЗАКРЫВАТЬ)
+title Client Booking Bot (DO NOT CLOSE)
 color 0B
 
 echo ==========================================
-echo        ЗАПУСК БОТА...
+echo        STARTING BOT...
 echo ==========================================
 echo.
 
-:: Проверка, есть ли папка venv
+:: Check if venv folder exists
 if not exist venv (
     color 0C
-    echo ОШИБКА: Виртуальное окружение не найдено!
-    echo Сначала запустите файл install.bat
+    echo ERROR: Virtual environment not found!
+    echo Run install.bat first
     pause
     exit
 )
 
 call venv\Scripts\activate
 
-:: Запуск модуля
+:: Run module
 python -m bot.main
 
-:: Если бот упал с ошибкой, окно не закроется сразу
+:: If bot crashes, window won't close immediately
 echo.
 echo ==========================================
-echo    БОТ ОСТАНОВИЛСЯ.
+echo    BOT STOPPED.
 echo ==========================================
 pause

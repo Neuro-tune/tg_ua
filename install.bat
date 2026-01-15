@@ -1,32 +1,32 @@
 @echo off
 chcp 65001 > nul
-title Установка Бота (Первый запуск)
+title Bot Installation (First Run)
 color 0A
 
 echo ==========================================
-echo    НАСТРОЙКА БОТА ДЛЯ ЗАПИСИ КЛИЕНТОВ
+echo    SETTING UP CLIENT BOOKING BOT
 echo ==========================================
 echo.
-echo 1. Создаем виртуальное окружение...
+echo 1. Creating virtual environment...
 python -m venv venv
 
 echo.
-echo 2. Активируем окружение...
+echo 2. Activating environment...
 call venv\Scripts\activate
 
 echo.
-echo 3. Обновляем pip...
+echo 3. Updating pip...
 python -m pip install --upgrade pip
 
 echo.
-echo 4. Устанавливаем библиотеки (это может занять время)...
+echo 4. Installing libraries (this may take time)...
 pip install -r requirements.txt
 
 echo.
 echo ==========================================
-echo    УСТАНОВКА УСПЕШНО ЗАВЕРШЕНА!
+echo    INSTALLATION SUCCESSFULLY COMPLETED!
 echo ==========================================
 echo.
-echo Теперь вы можете запускать бота через файл start.bat
+echo Now you can run the bot via start.bat
 echo.
 pause

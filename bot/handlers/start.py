@@ -1,5 +1,5 @@
 """
-Обработчик команды /start с Reply Keyboard
+Reply Keyboard Handler for /start command
 """
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
@@ -12,44 +12,50 @@ from aiogram.types import (
     InlineKeyboardButton
 )
 from bot.config import config
+# Import the Google Sheets Service
+from bot.services.google_sheets import GoogleSheetsService
 
 router = Router(name="start")
+
+# Initialize the Google Sheets Service
+# This allows us to check bookings in the handlers below
+sheets_service = GoogleSheetsService(config.credentials_file, config.google_sheet_name)
 
 
 def get_webapp_keyboard() -> ReplyKeyboardMarkup:
     """
-    Reply Keyboard с Web App кнопкой
-    ЭТО ЕДИНСТВЕННЫЙ СПОСОБ, при котором работает sendData()!
+    Reply Keyboard with Web App button
+    THIS IS THE ONLY WAY sendData() works!
     """
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
             [
                 KeyboardButton(
-                    text="📝 Записаться на приём",
+                    text="📝 Book Appointment",
                     web_app=WebAppInfo(url=config.webapp_url)
                 )
             ],
             [
-                KeyboardButton(text="📞 Связаться с нами"),
-                KeyboardButton(text="ℹ️ О нас")
+                KeyboardButton(text="📞 Contact Us"),
+                KeyboardButton(text="ℹ️ About Us")
             ],
             [
-                KeyboardButton(text="📋 Мои записи")
+                KeyboardButton(text="📋 My Bookings")
             ]
         ],
-        resize_keyboard=True,  # Уменьшить размер кнопок
-        is_persistent=True     # Клавиатура всегда видна
+        resize_keyboard=True,  # Reduce button size
+        is_persistent=True     # Keyboard always visible
     )
     return keyboard
 
 
 def get_inline_keyboard() -> InlineKeyboardMarkup:
-    """Дополнительные Inline кнопки (без Web App)"""
+    """Additional Inline buttons (without Web App)"""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="🌐 Наш сайт",
+                    text="🌐 Our Website",
                     url="https://example.com"
                 ),
                 InlineKeyboardButton(
@@ -63,20 +69,20 @@ def get_inline_keyboard() -> InlineKeyboardMarkup:
 
 @router.message(CommandStart())
 async def cmd_start(message: Message) -> None:
-    """Обработчик команды /start"""
+    """Handler for /start command"""
     
     welcome_text = f"""
-👋 <b>Добро пожаловать, {message.from_user.first_name}!</b>
+👋 <b>Welcome, {message.from_user.first_name}!</b>
 
-🏥 Мы рады приветствовать вас в нашем сервисе онлайн-записи.
+🏥 We are glad to welcome you to our online booking service.
 
-✨ <b>Что мы предлагаем:</b>
-• Удобная запись в пару кликов
-• Выбор удобного времени
-• Напоминания о визите
-• История ваших записей
+✨ <b>What we offer:</b>
+• Convenient booking in a couple of clicks
+• Choice of convenient time
+• Visit reminders
+• History of your bookings
 
-👇 <b>Нажмите кнопку ниже, чтобы записаться:</b>
+👇 <b>Click the button below to book:</b>
 """
     
     await message.answer(
@@ -86,53 +92,88 @@ async def cmd_start(message: Message) -> None:
     )
 
 
-# Обработчики текстовых кнопок Reply Keyboard
-@router.message(F.text == "📞 Связаться с нами")
+# Text Reply Keyboard Button Handlers
+@router.message(F.text == "📞 Contact Us")
 async def handle_contact(message: Message) -> None:
-    """Обработчик кнопки 'Связаться с нами'"""
+    """Handler for 'Contact Us' button"""
     contact_text = """
-📞 <b>Наши контакты:</b>
+📞 <b>Our Contacts:</b>
 
-📱 Телефон: +7 (999) 123-45-67
+📱 Phone: +7 (999) 123-45-67
 📧 Email: info@example.com
-🕐 Время работы: Пн-Пт 9:00 - 20:00
+🕐 Working Hours: Mon-Fri 9:00 - 20:00
 
-📍 Адрес: г. Москва, ул. Примерная, д. 1
+📍 Address: Moscow, Example St., 1
 """
     await message.answer(contact_text, parse_mode="HTML")
 
 
-@router.message(F.text == "ℹ️ О нас")
+@router.message(F.text == "ℹ️ About Us")
 async def handle_about(message: Message) -> None:
-    """Обработчик кнопки 'О нас'"""
+    """Handler for 'About Us' button"""
     about_text = """
-ℹ️ <b>О нашей компании</b>
+ℹ️ <b>About Our Company</b>
 
-Мы работаем с 2020 года и предоставляем 
-качественные услуги нашим клиентам.
+We have been working since 2020 and provide
+quality services to our clients.
 
-🏆 Более 1000 довольных клиентов
-⭐ Рейтинг 4.9 на Яндекс.Картах
-👨‍⚕️ Опытные специалисты
+🏆 Over 1000 satisfied clients
+⭐ Rating 4.9 on Maps
+👨‍⚕️ Experienced specialists
 """
     await message.answer(about_text, parse_mode="HTML")
 
 
-@router.message(F.text == "📋 Мои записи")
+@router.message(F.text == "📋 My Bookings")
 async def handle_my_bookings(message: Message) -> None:
-    """Обработчик кнопки 'Мои записи'"""
-    # Здесь можно добавить логику получения записей пользователя
-    await message.answer(
-        "📋 <b>Ваши записи:</b>\n\nУ вас пока нет активных записей.",
-        parse_mode="HTML"
-    )
+    """Handler for 'My Bookings' button - REAL DATA CHECK"""
+    
+    # 1. Get the Telegram User ID
+    user_id = message.from_user.id
+    
+    try:
+        # 2. Request bookings from Google Sheets
+        bookings = sheets_service.get_bookings_by_user(user_id)
+        
+        # 3. If no bookings found
+        if not bookings:
+            await message.answer(
+                "📂 <b>You have no active bookings yet.</b>",
+                parse_mode="HTML"
+            )
+            return
+
+        # 4. If bookings exist, format the message
+        response_text = "📋 <b>Your Active Bookings:</b>\n"
+        
+        for booking in bookings:
+            # Get data from dictionary (keys match Google Sheet headers)
+            service = booking.get("Service", "Service")
+            date_time = booking.get("Visit Date/Time", "Time not specified")
+            
+            response_text += f"\n🔹 <b>{service}</b>"
+            response_text += f"\n🕒 {date_time}"
+            response_text += "\n───────────────"
+
+        await message.answer(response_text, parse_mode="HTML")
+
+    except Exception as e:
+        # Error handling (e.g., connection issue)
+        import traceback
+        print("❌ КРИТИЧЕСКАЯ ОШИБКА В MY BOOKINGS:")
+        print(e)
+        print(traceback.format_exc())
+        await message.answer(
+            "⚠️ <b>Error retrieving data.</b>\nPlease try again later.",
+            parse_mode="HTML"
+        )
 
 
 @router.message(Command("menu"))
 async def cmd_menu(message: Message) -> None:
-    """Показать главное меню"""
+    """Show main menu"""
     await message.answer(
-        "📱 <b>Главное меню</b>\n\nВыберите действие:",
+        "📱 <b>Main Menu</b>\n\nChoose an action:",
         reply_markup=get_webapp_keyboard(),
         parse_mode="HTML"
     )

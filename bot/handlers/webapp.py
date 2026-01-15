@@ -1,5 +1,5 @@
 """
-Обработчик данных из Web App
+Handler for Web App data
 """
 import json
 import logging
@@ -11,7 +11,7 @@ from bot.services.google_sheets import GoogleSheetsService
 router = Router(name="webapp")
 logger = logging.getLogger(__name__)
 
-# Инициализация сервиса Google Sheets
+# Initialize Google Sheets service
 sheets_service = GoogleSheetsService(
     credentials_file=config.credentials_file,
     sheet_name=config.google_sheet_name
@@ -19,39 +19,39 @@ sheets_service = GoogleSheetsService(
 
 
 def format_booking_message(booking: dict, user_info: str = "") -> str:
-    """Форматирование сообщения о записи"""
+    """Format booking message"""
     return f"""
-🎉 <b>Новая запись #{booking['id']}</b>
+🎉 <b>New Booking #{booking['id']}</b>
 
-👤 <b>Клиент:</b> {booking['name']}
-📱 <b>Телефон:</b> {booking['phone']}
-💼 <b>Услуга:</b> {booking['service']}
-📅 <b>Дата/Время:</b> {booking['date_time']}
-🕐 <b>Создано:</b> {booking['created_at']}
+👤 <b>Client:</b> {booking['name']}
+📱 <b>Phone:</b> {booking['phone']}
+💼 <b>Service:</b> {booking['service']}
+📅 <b>Date/Time:</b> {booking['date_time']}
+🕐 <b>Created:</b> {booking['created_at']}
 {user_info}
 """
 
 
 @router.message(F.web_app_data)
 async def handle_webapp_data(message: Message, bot: Bot) -> None:
-    """Обработка данных из Web App"""
+    """Handle data from Web App"""
     
     try:
-        # Парсинг данных из Web App
+        # Parse data from Web App
         data = json.loads(message.web_app_data.data)
         
-        logger.info(f"📥 Получены данные из Web App: {data}")
+        logger.info(f"📥 Received data from Web App: {data}")
         
-        # Валидация данных
+        # Validate data
         required_fields = ['name', 'phone', 'service', 'datetime']
         for field in required_fields:
             if field not in data or not data[field]:
                 await message.answer(
-                    f"❌ Ошибка: поле '{field}' обязательно для заполнения"
+                    f"❌ Error: field '{field}' is required"
                 )
                 return
         
-        # Сохранение в Google Sheets
+        # Save to Google Sheets
         booking = await sheets_service.add_booking(
             name=data['name'],
             phone=data['phone'],
@@ -61,26 +61,26 @@ async def handle_webapp_data(message: Message, bot: Bot) -> None:
             username=message.from_user.username or ""
         )
         
-        # Подтверждение пользователю
+        # Confirmation to user
         user_message = f"""
-✅ <b>Запись успешно создана!</b>
+✅ <b>Booking successfully created!</b>
 
-📋 <b>Детали записи:</b>
-├ 🆔 Номер: #{booking['id']}
-├ 👤 Имя: {booking['name']}
-├ 📱 Телефон: {booking['phone']}
-├ 💼 Услуга: {booking['service']}
-└ 📅 Дата/Время: {booking['date_time']}
+📋 <b>Booking Details:</b>
+├ 🆔 Number: #{booking['id']}
+├ 👤 Name: {booking['name']}
+├ 📱 Phone: {booking['phone']}
+├ 💼 Service: {booking['service']}
+└ 📅 Date/Time: {booking['date_time']}
 
-⏰ Мы напомним вам о визите!
-📞 Если нужно отменить или перенести запись, свяжитесь с нами.
+⏰ We will remind you about your visit!
+📞 If you need to cancel or reschedule, please contact us.
 
-Спасибо, что выбрали нас! 💙
+Thank you for choosing us! 💙
 """
         
         await message.answer(user_message, parse_mode="HTML")
         
-        # Уведомление админу
+        # Notification to admin
         user_info = f"👤 <b>Telegram:</b> @{message.from_user.username}" if message.from_user.username else f"👤 <b>User ID:</b> {message.from_user.id}"
         
         admin_message = format_booking_message(booking, user_info)
@@ -92,17 +92,17 @@ async def handle_webapp_data(message: Message, bot: Bot) -> None:
                 text=admin_message,
                 parse_mode="HTML"
             )
-            logger.info(f"✅ Уведомление отправлено админу (ID: {config.admin_id})")
+            logger.info(f"✅ Notification sent to admin (ID: {config.admin_id})")
         except Exception as e:
-            logger.error(f"❌ Ошибка отправки уведомления админу: {e}")
+            logger.error(f"❌ Error sending notification to admin: {e}")
         
     except json.JSONDecodeError as e:
-        logger.error(f"❌ Ошибка парсинга JSON: {e}")
-        await message.answer("❌ Ошибка обработки данных. Попробуйте ещё раз.")
+        logger.error(f"❌ JSON parsing error: {e}")
+        await message.answer("❌ Error processing data. Please try again.")
         
     except Exception as e:
-        logger.error(f"❌ Ошибка обработки данных Web App: {e}")
+        logger.error(f"❌ Error processing Web App data: {e}")
         await message.answer(
-            "❌ Произошла ошибка при создании записи.\n"
-            "Пожалуйста, попробуйте позже или свяжитесь с нами."
+            "❌ An error occurred while creating the booking.\n"
+            "Please try again later or contact us."
         )

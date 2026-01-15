@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Запись на приём</title>
+    <title>Book Appointment</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,8 +18,8 @@
             <div class="header-icon">
                 <span class="material-icons-round">calendar_month</span>
             </div>
-            <h1>Запись на приём</h1>
-            <p class="subtitle">Заполните форму для бронирования</p>
+            <h1>Book Appointment</h1>
+            <p class="subtitle">Fill out the form to book</p>
         </div>
 
         <!-- Progress Bar -->
@@ -30,15 +30,15 @@
             <div class="progress-steps">
                 <div class="step active" data-step="1">
                     <span class="step-number">1</span>
-                    <span class="step-label">Данные</span>
+                    <span class="step-label">Details</span>
                 </div>
                 <div class="step" data-step="2">
                     <span class="step-number">2</span>
-                    <span class="step-label">Услуга</span>
+                    <span class="step-label">Service</span>
                 </div>
                 <div class="step" data-step="3">
                     <span class="step-number">3</span>
-                    <span class="step-label">Время</span>
+                    <span class="step-label">Time</span>
                 </div>
             </div>
         </div>
@@ -50,17 +50,16 @@
                 <div class="form-group">
                     <label for="name">
                         <span class="material-icons-round">person</span>
-                        Ваше имя
+                        Your Name
                     </label>
-                    <input type="text" id="name" name="name" placeholder="Введите ваше имя" required
-                        autocomplete="name">
+                    <input type="text" id="name" name="name" placeholder="Enter your name" required autocomplete="name">
                     <span class="error-message" id="nameError"></span>
                 </div>
 
                 <div class="form-group">
                     <label for="phone">
                         <span class="material-icons-round">phone</span>
-                        Телефон
+                        Phone
                     </label>
                     <input type="tel" id="phone" name="phone" placeholder="+7 (___) ___-__-__" required
                         autocomplete="tel">
@@ -73,34 +72,34 @@
                 <div class="form-group">
                     <label for="service">
                         <span class="material-icons-round">medical_services</span>
-                        Выберите услугу
+                        Select Service
                     </label>
                     <div class="select-wrapper">
                         <select id="service" name="service" required>
-                            <option value="" disabled selected>Выберите услугу...</option>
-                            <optgroup label="💇 Стрижки">
-                                <option value="Мужская стрижка" data-price="1500" data-duration="45">Мужская стрижка — 1
+                            <option value="" disabled selected>Select service...</option>
+                            <optgroup label="💇 Haircuts">
+                                <option value="Men's Haircut" data-price="1500" data-duration="45">Men's Haircut — 1 500
+                                    ₽</option>
+                                <option value="Women's Haircut" data-price="2500" data-duration="60">Women's Haircut — 2
                                     500 ₽</option>
-                                <option value="Женская стрижка" data-price="2500" data-duration="60">Женская стрижка — 2
-                                    500 ₽</option>
-                                <option value="Детская стрижка" data-price="1000" data-duration="30">Детская стрижка — 1
-                                    000 ₽</option>
+                                <option value="Children's Haircut" data-price="1000" data-duration="30">Children's
+                                    Haircut — 1 000 ₽</option>
                             </optgroup>
-                            <optgroup label="🎨 Окрашивание">
-                                <option value="Окрашивание корней" data-price="3000" data-duration="90">Окрашивание
-                                    корней — 3 000 ₽</option>
-                                <option value="Полное окрашивание" data-price="5000" data-duration="120">Полное
-                                    окрашивание — 5 000 ₽</option>
-                                <option value="Мелирование" data-price="4500" data-duration="150">Мелирование — 4 500 ₽
+                            <optgroup label="🎨 Coloring">
+                                <option value="Root Coloring" data-price="3000" data-duration="90">Root Coloring — 3 000
+                                    ₽</option>
+                                <option value="Full Coloring" data-price="5000" data-duration="120">Full Coloring — 5
+                                    000 ₽</option>
+                                <option value="Highlights" data-price="4500" data-duration="150">Highlights — 4 500 ₽
                                 </option>
                             </optgroup>
-                            <optgroup label="✨ Уход">
-                                <option value="Маска для волос" data-price="1000" data-duration="30">Маска для волос — 1
-                                    000 ₽</option>
-                                <option value="Кератиновое выпрямление" data-price="8000" data-duration="180">
-                                    Кератиновое выпрямление — 8 000 ₽</option>
-                                <option value="Ботокс для волос" data-price="6000" data-duration="120">Ботокс для волос
-                                    — 6 000 ₽</option>
+                            <optgroup label="✨ Care">
+                                <option value="Hair Mask" data-price="1000" data-duration="30">Hair Mask — 1 000 ₽
+                                </option>
+                                <option value="Keratin Straightening" data-price="8000" data-duration="180">Keratin
+                                    Straightening — 8 000 ₽</option>
+                                <option value="Hair Botox" data-price="6000" data-duration="120">Hair Botox — 6 000 ₽
+                                </option>
                             </optgroup>
                         </select>
                         <span class="material-icons-round select-arrow">expand_more</span>
@@ -112,11 +111,11 @@
                 <div class="service-info" id="serviceInfo" style="display: none;">
                     <div class="info-row">
                         <span class="material-icons-round">payments</span>
-                        <span>Стоимость: <strong id="servicePrice">0 ₽</strong></span>
+                        <span>Price: <strong id="servicePrice">0 ₽</strong></span>
                     </div>
                     <div class="info-row">
                         <span class="material-icons-round">schedule</span>
-                        <span>Длительность: <strong id="serviceDuration">0 мин</strong></span>
+                        <span>Duration: <strong id="serviceDuration">0 min</strong></span>
                     </div>
                 </div>
             </div>
@@ -126,7 +125,7 @@
                 <div class="form-group">
                     <label for="date">
                         <span class="material-icons-round">event</span>
-                        Выберите дату
+                        Select Date
                     </label>
                     <input type="date" id="date" name="date" required>
                     <span class="error-message" id="dateError"></span>
@@ -135,7 +134,7 @@
                 <div class="form-group">
                     <label>
                         <span class="material-icons-round">access_time</span>
-                        Выберите время
+                        Select Time
                     </label>
                     <div class="time-slots" id="timeSlots">
                         <!-- Time slots will be generated by JavaScript -->
@@ -149,23 +148,23 @@
             <div class="summary" id="summary" style="display: none;">
                 <h3>
                     <span class="material-icons-round">receipt_long</span>
-                    Итого
+                    Summary
                 </h3>
                 <div class="summary-content">
                     <div class="summary-row">
-                        <span>Имя:</span>
+                        <span>Name:</span>
                         <strong id="summaryName"></strong>
                     </div>
                     <div class="summary-row">
-                        <span>Телефон:</span>
+                        <span>Phone:</span>
                         <strong id="summaryPhone"></strong>
                     </div>
                     <div class="summary-row">
-                        <span>Услуга:</span>
+                        <span>Service:</span>
                         <strong id="summaryService"></strong>
                     </div>
                     <div class="summary-row">
-                        <span>Дата и время:</span>
+                        <span>Date and Time:</span>
                         <strong id="summaryDateTime"></strong>
                     </div>
                 </div>
@@ -175,15 +174,15 @@
             <div class="form-navigation">
                 <button type="button" class="btn btn-secondary" id="prevBtn" style="display: none;">
                     <span class="material-icons-round">arrow_back</span>
-                    Назад
+                    Back
                 </button>
                 <button type="button" class="btn btn-primary" id="nextBtn">
-                    Далее
+                    Next
                     <span class="material-icons-round">arrow_forward</span>
                 </button>
                 <button type="submit" class="btn btn-success" id="submitBtn" style="display: none;">
                     <span class="material-icons-round">check_circle</span>
-                    Записаться
+                    Book
                 </button>
             </div>
         </form>
@@ -192,7 +191,7 @@
         <div class="loading-overlay" id="loadingOverlay">
             <div class="loading-spinner">
                 <div class="spinner"></div>
-                <p>Отправка данных...</p>
+                <p>Sending data...</p>
             </div>
         </div>
     </div>
