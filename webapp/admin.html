@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Адмін Панель</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --text-color: #ffffff;
+            --accent-color: #ff5252;
+            /* Червоний для адміна */
+            --btn-text: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .control-panel {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: #3d3d3d;
+            border: 1px solid #555;
+            color: white;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .btn {
+            background: var(--accent-color);
+            color: var(--btn-text);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-green {
+            background: #4caf50;
+        }
+
+        .booking-card {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .booking-info {
+            flex-grow: 1;
+        }
+
+        .booking-time {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .booking-user {
+            font-weight: 500;
+        }
+
+        .booking-meta {
+            color: #aaa;
+            font-size: 0.9em;
+            margin-top: 4px;
+        }
+
+        .booking-actions {
+            display: flex;
+            gap: 8px;
+            flex-direction: column;
+        }
+
+        .icon-btn {
+            background: #3d3d3d;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-width: 500px;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            text-align: center;
+            color: #888;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="control-panel">
+        <h2>📅 Управління записами</h2>
+        <input type="date" id="adminDate">
+        <button class="btn" onclick="loadBookings()">
+            <span class="material-icons-round">refresh</span> Оновити список
+        </button>
+        <button class="btn btn-green" onclick="openAddModal()">
+            <span class="material-icons-round">add</span> Додати запис вручну
+        </button>
+    </div>
+
+    <div id="bookingsList">
+        <div class="loading">Оберіть дату, щоб побачити записи</div>
+    </div>
+
+    <div class="modal" id="bookingModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Запис</h3>
+            <input type="hidden" id="editRowIndex">
+            <input type="hidden" id="editId">
+
+            <input type="text" id="mName" placeholder="Ім'я клієнта">
+            <input type="tel" id="mPhone" placeholder="Телефон (+380...)">
+
+            <select id="mService">
+                <option value="Чоловіча стрижка">Чоловіча стрижка</option>
+                <option value="Жіноча стрижка">Жіноча стрижка</option>
+                <option value="Дитяча стрижка">Дитяча стрижка</option>
+                <option value="Фарбування коренів">Фарбування коренів</option>
+                <option value="Повне фарбування">Повне фарбування</option>
+                <option value="Мелірування">Мелірування</option>
+                <option value="Маска для волосся">Маска для волосся</option>
+                <option value="Кератинове вирівнювання">Кератинове вирівнювання</option>
+                <option value="Ботокс для волосся">Ботокс для волосся</option>
+            </select>
+
+            <label style="font-size:0.9em; color:#aaa">Час початку:</label>
+            <input type="time" id="mTime">
+
+            <button class="btn" onclick="saveBooking()">💾 Зберегти</button>
+            <button class="btn" style="background: #555; margin-top: 10px;" onclick="closeModal()">Скасувати</button>
+        </div>
+    </div>
+
+    <script>
+        // 👇 Переконайся, що тут правильне посилання на скрипт
+        const API_URL = 'https://script.google.com/macros/s/AKfycbymLc_CQxyO9M9nZwuOjm_EHZa4aeiK8tzcLdCYp6Eh2tNTVPn95_UQ5_fYvKjpODr5/exec';
+
+        const els = {
+            date: document.getElementById('adminDate'),
+            list: document.getElementById('bookingsList'),
+            modal: document.getElementById('bookingModal'),
+            mName: document.getElementById('mName'),
+            mPhone: document.getElementById('mPhone'),
+            mService: document.getElementById('mService'),
+            mTime: document.getElementById('mTime'),
+            editRow: document.getElementById('editRowIndex'),
+            editId: document.getElementById('editId'),
+            modalTitle: document.getElementById('modalTitle')
+        };
+
+        const tg = window.Telegram?.WebApp;
+        if (tg) { tg.expand(); }
+
+        // Встановлюємо сьогоднішню дату
+        els.date.valueAsDate = new Date();
+        loadBookings();
+
+        async function loadBookings() {
+            const date = els.date.value;
+            if (!date) return;
+
+            els.list.innerHTML = '<div class="loading">⏳ Завантаження...</div>';
+
+            try {
+                const res = await fetch(`${API_URL}?action=get_day_bookings&date=${date}`);
+                const data = await res.json();
+
+                if (data.bookings && data.bookings.length > 0) {
+                    els.list.innerHTML = data.bookings.map(b => `
+                        <div class="booking-card">
+                            <div class="booking-info">
+                                <div class="booking-time">
+                                    ${b.time_full.match(/\d{2}:\d{2}/) ? b.time_full.match(/\d{2}:\d{2}/)[0] : '??:??'}
+                                </div>
+                                <div class="booking-user">👤 ${b.name}</div>
+                                <div class="booking-meta">📱 ${b.phone}</div>
+                                <div class="booking-meta">✂️ ${b.service}</div>
+                            </div>
+                            <div class="booking-actions">
+                                <button class="icon-btn" style="color:#4caf50" onclick='openEditModal(${JSON.stringify(b)})'>
+                                    <span class="material-icons-round">edit</span>
+                                </button>
+                                <button class="icon-btn" style="color:#ff5252" onclick="deleteBooking(${b.row_index}, ${b.id})">
+                                    <span class="material-icons-round">delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    els.list.innerHTML = '<div class="loading">Немає записів на цей день</div>';
+                }
+            } catch (e) {
+                els.list.innerHTML = `<div class="loading" style="color:red">Помилка: ${e}</div>`;
+            }
+        }
+
+        async function deleteBooking(rowIndex, id) {
+            if (!confirm('Видалити цей запис безповоротно?')) return;
+
+            els.list.innerHTML = '<div class="loading">Видалення...</div>';
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'delete', row_index: rowIndex, id: id })
+                });
+                loadBookings();
+            } catch (e) { alert('Помилка видалення'); loadBookings(); }
+        }
+
+        function openAddModal() {
+            els.modalTitle.textContent = "Ручний запис (Адмін)";
+            els.editRow.value = "";
+            els.mName.value = "";
+            els.mPhone.value = "";
+            els.mTime.value = "12:00";
+            els.modal.classList.add('active');
+        }
+
+        function openEditModal(b) {
+            els.modalTitle.textContent = "Редагування";
+            els.editRow.value = b.row_index;
+            els.editId.value = b.id;
+            els.mName.value = b.name;
+            els.mPhone.value = b.phone;
+            els.mService.value = b.service;
+            const timePart = b.time_full.match(/\d{2}:\d{2}/);
+            if (timePart) els.mTime.value = timePart[0];
+
+            els.modal.classList.add('active');
+        }
+
+        function closeModal() {
+            els.modal.classList.remove('active');
+        }
+
+        async function saveBooking() {
+            const isEdit = els.editRow.value !== "";
+
+            // Форматуємо дату в УКРАЇНСЬКОМУ форматі, щоб Google Script зрозумів
+            // Формат: "Пт, 16 січня 2026, 14:00"
+            const parts = els.date.value.split('-');
+            const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+
+            const monthsUA = [
+                'січня', 'лютого', 'березня', 'квітня', 'травня', 'червня',
+                'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня'
+            ];
+            const weekdaysUA = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+
+            const dayName = weekdaysUA[dateObj.getDay()];
+            const dayNum = dateObj.getDate();
+            const monthName = monthsUA[dateObj.getMonth()];
+            const year = dateObj.getFullYear();
+
+            const dateStr = `${dayName}, ${dayNum} ${monthName} ${year}`;
+            const fullDateTime = `${dateStr}, ${els.mTime.value}`;
+
+            const payload = {
+                action: isEdit ? 'update' : 'add_manual',
+                name: els.mName.value,
+                phone: els.mPhone.value,
+                service: els.mService.value,
+                datetime: fullDateTime,
+                row_index: els.editRow.value
+            };
+
+            const btn = document.querySelector('.modal .btn');
+            btn.textContent = 'Збереження...';
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                closeModal();
+                loadBookings();
+            } catch (e) {
+                alert('Помилка: ' + e);
+            } finally {
+                btn.textContent = '💾 Зберегти';
+            }
+        }
+    </script>
+</body>
+
+</html>

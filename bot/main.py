@@ -8,7 +8,11 @@ from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 from bot.config import config
-from bot.handlers import setup_routers
+
+# 🔥 ИМПОРТИРУЕМ НУЖНЫЕ МОДУЛИ
+from bot.handlers import setup_routers, admin
+from bot.reminders import ReminderSystem
+from bot.services.google_sheets import GoogleSheetsService
 
 # Logging configuration
 logging.basicConfig(
@@ -27,11 +31,10 @@ async def on_startup(bot: Bot) -> None:
     bot_info = await bot.get_me()
     logger.info(f"🚀 Bot @{bot_info.username} started!")
     
-    # Notification to admin about startup
     try:
         await bot.send_message(
             chat_id=config.admin_id,
-            text="🟢 Bot successfully started and ready to work!"
+            text="🟢 Бот успішно запущений і готовий до роботи!"
         )
     except Exception as e:
         logger.warning(f"Failed to send notification to admin: {e}")
@@ -40,11 +43,10 @@ async def on_startup(bot: Bot) -> None:
 async def on_shutdown(bot: Bot) -> None:
     """Actions on bot shutdown"""
     logger.info("🔴 Bot stopped")
-    
     try:
         await bot.send_message(
             chat_id=config.admin_id,
-            text="🔴 Bot stopped"
+            text="🔴 Бот зупинений"
         )
     except Exception:
         pass
@@ -74,8 +76,20 @@ async def main() -> None:
     # Initialize dispatcher
     dp = Dispatcher()
     
-    # Register routers
+    # --- 🔥 НОВЫЙ БЛОК: ИНИЦИАЛИЗАЦИЯ СЕРВИСОВ ---
+    # 1. Подключаем таблицы
+    sheets_service = GoogleSheetsService(config.credentials_file, config.google_sheet_name)
+    
+    # 2. Создаем систему напоминаний
+    reminder_system = ReminderSystem(bot, sheets_service)
+    
+    # 3. Регистрируем роутеры (ВКЛЮЧАЯ АДМИНКУ)
     dp.include_router(setup_routers())
+    dp.include_router(admin.router)  # <-- Важно! Без этого /admin не работает
+    
+    # 4. Запускаем напоминания в фоне
+    asyncio.create_task(reminder_system.start())
+    # ---------------------------------------------
     
     # Register events
     dp.startup.register(on_startup)

@@ -21,13 +21,13 @@ sheets_service = GoogleSheetsService(
 def format_booking_message(booking: dict, user_info: str = "") -> str:
     """Format booking message"""
     return f"""
-🎉 <b>New Booking #{booking['id']}</b>
+🎉 <b>Новий запис #{booking['id']}</b>
 
-👤 <b>Client:</b> {booking['name']}
-📱 <b>Phone:</b> {booking['phone']}
-💼 <b>Service:</b> {booking['service']}
-📅 <b>Date/Time:</b> {booking['date_time']}
-🕐 <b>Created:</b> {booking['created_at']}
+👤 <b>Клієнт:</b> {booking['name']}
+📱 <b>Телефон:</b> {booking['phone']}
+💼 <b>Послуга:</b> {booking['service']}
+📅 <b>Дата/Час:</b> {booking['date_time']}
+🕐 <b>Створено:</b> {booking['created_at']}
 {user_info}
 """
 
@@ -47,7 +47,7 @@ async def handle_webapp_data(message: Message, bot: Bot) -> None:
         for field in required_fields:
             if field not in data or not data[field]:
                 await message.answer(
-                    f"❌ Error: field '{field}' is required"
+                    f"❌ Помилка: поле '{field}' є обов'язковим"
                 )
                 return
         
@@ -63,19 +63,19 @@ async def handle_webapp_data(message: Message, bot: Bot) -> None:
         
         # Confirmation to user
         user_message = f"""
-✅ <b>Booking successfully created!</b>
+✅ <b>Запис успішно створено!</b>
 
-📋 <b>Booking Details:</b>
-├ 🆔 Number: #{booking['id']}
-├ 👤 Name: {booking['name']}
-├ 📱 Phone: {booking['phone']}
-├ 💼 Service: {booking['service']}
-└ 📅 Date/Time: {booking['date_time']}
+📋 <b>Деталі запису:</b>
+├ 🆔 Номер: #{booking['id']}
+├ 👤 Ім'я: {booking['name']}
+├ 📱 Телефон: {booking['phone']}
+├ 💼 Послуга: {booking['service']}
+└ 📅 Дата/Час: {booking['date_time']}
 
-⏰ We will remind you about your visit!
-📞 If you need to cancel or reschedule, please contact us.
+⏰ Ми нагадаємо вам про візит!
+📞 Якщо потрібно скасувати або перенести, будь ласка, зв'яжіться з нами.
 
-Thank you for choosing us! 💙
+Дякуємо, що обрали нас! 💙
 """
         
         await message.answer(user_message, parse_mode="HTML")
@@ -98,11 +98,11 @@ Thank you for choosing us! 💙
         
     except json.JSONDecodeError as e:
         logger.error(f"❌ JSON parsing error: {e}")
-        await message.answer("❌ Error processing data. Please try again.")
+        await message.answer("❌ Помилка обробки даних. Спробуйте ще раз.")
         
     except Exception as e:
         logger.error(f"❌ Error processing Web App data: {e}")
         await message.answer(
-            "❌ An error occurred while creating the booking.\n"
-            "Please try again later or contact us."
+            "❌ Виникла помилка при створенні запису.\n"
+            "Будь ласка, спробуйте пізніше або зв'яжіться з нами."
         )

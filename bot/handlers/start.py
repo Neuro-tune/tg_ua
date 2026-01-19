@@ -31,16 +31,16 @@ def get_webapp_keyboard() -> ReplyKeyboardMarkup:
         keyboard=[
             [
                 KeyboardButton(
-                    text="📝 Book Appointment",
+                    text="📝 Записатися",
                     web_app=WebAppInfo(url=config.webapp_url)
                 )
             ],
             [
-                KeyboardButton(text="📞 Contact Us"),
-                KeyboardButton(text="ℹ️ About Us")
+                KeyboardButton(text="📞 Контакти"),
+                KeyboardButton(text="ℹ️ Про нас")
             ],
             [
-                KeyboardButton(text="📋 My Bookings")
+                KeyboardButton(text="📋 Мої записи")
             ]
         ],
         resize_keyboard=True,  # Reduce button size
@@ -55,7 +55,7 @@ def get_inline_keyboard() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="🌐 Our Website",
+                    text="🌐 Наш сайт",
                     url="https://example.com"
                 ),
                 InlineKeyboardButton(
@@ -72,17 +72,17 @@ async def cmd_start(message: Message) -> None:
     """Handler for /start command"""
     
     welcome_text = f"""
-👋 <b>Welcome, {message.from_user.first_name}!</b>
+👋 <b>Вітаємо, {message.from_user.first_name}!</b>
 
-🏥 We are glad to welcome you to our online booking service.
+🏥 Ми раді вітати вас у нашому сервісі онлайн-запису.
 
-✨ <b>What we offer:</b>
-• Convenient booking in a couple of clicks
-• Choice of convenient time
-• Visit reminders
-• History of your bookings
+✨ <b>Що ми пропонуємо:</b>
+• Зручний запис у кілька кліків
+• Вибір зручного часу
+• Нагадування про візит
+• Історія ваших записів
 
-👇 <b>Click the button below to book:</b>
+👇 <b>Натисніть кнопку нижче, щоб записатися:</b>
 """
     
     await message.answer(
@@ -93,38 +93,38 @@ async def cmd_start(message: Message) -> None:
 
 
 # Text Reply Keyboard Button Handlers
-@router.message(F.text == "📞 Contact Us")
+@router.message(F.text == "📞 Контакти")
 async def handle_contact(message: Message) -> None:
     """Handler for 'Contact Us' button"""
     contact_text = """
-📞 <b>Our Contacts:</b>
+📞 <b>Наші контакти:</b>
 
-📱 Phone: +7 (999) 123-45-67
+📱 Телефон: +380 (99) 123-45-67
 📧 Email: info@example.com
-🕐 Working Hours: Mon-Fri 9:00 - 20:00
+🕐 Час роботи: Пн-Пт 9:00 - 20:00
 
-📍 Address: Moscow, Example St., 1
+📍 Адреса: Київ, вул. Прикладна, 1
 """
     await message.answer(contact_text, parse_mode="HTML")
 
 
-@router.message(F.text == "ℹ️ About Us")
+@router.message(F.text == "ℹ️ Про нас")
 async def handle_about(message: Message) -> None:
     """Handler for 'About Us' button"""
     about_text = """
-ℹ️ <b>About Our Company</b>
+ℹ️ <b>Про нашу компанію</b>
 
-We have been working since 2020 and provide
-quality services to our clients.
+Ми працюємо з 2020 року та надаємо
+якісні послуги нашим клієнтам.
 
-🏆 Over 1000 satisfied clients
-⭐ Rating 4.9 on Maps
-👨‍⚕️ Experienced specialists
+🏆 Понад 1000 задоволених клієнтів
+⭐ Рейтинг 4.9 на картах
+👨‍⚕️ Досвідчені спеціалісти
 """
     await message.answer(about_text, parse_mode="HTML")
 
 
-@router.message(F.text == "📋 My Bookings")
+@router.message(F.text == "📋 Мої записи")
 async def handle_my_bookings(message: Message) -> None:
     """Handler for 'My Bookings' button - REAL DATA CHECK"""
     
@@ -138,13 +138,13 @@ async def handle_my_bookings(message: Message) -> None:
         # 3. If no bookings found
         if not bookings:
             await message.answer(
-                "📂 <b>You have no active bookings yet.</b>",
+                "📂 <b>У вас поки немає активних записів.</b>",
                 parse_mode="HTML"
             )
             return
 
         # 4. If bookings exist, format the message
-        response_text = "📋 <b>Your Active Bookings:</b>\n"
+        response_text = "📋 <b>Ваші активні записи:</b>\n"
         
         for booking in bookings:
             # Get data from dictionary (keys match Google Sheet headers)
@@ -164,7 +164,7 @@ async def handle_my_bookings(message: Message) -> None:
         print(e)
         print(traceback.format_exc())
         await message.answer(
-            "⚠️ <b>Error retrieving data.</b>\nPlease try again later.",
+            "⚠️ <b>Помилка отримання даних.</b>\nСпробуйте пізніше.",
             parse_mode="HTML"
         )
 
@@ -173,7 +173,7 @@ async def handle_my_bookings(message: Message) -> None:
 async def cmd_menu(message: Message) -> None:
     """Show main menu"""
     await message.answer(
-        "📱 <b>Main Menu</b>\n\nChoose an action:",
+        "📱 <b>Головне меню</b>\n\nОберіть дію:",
         reply_markup=get_webapp_keyboard(),
         parse_mode="HTML"
     )

@@ -1,4 +1,4 @@
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMIMTAJanCyjIIwLP6xc9fyLf90hCMHDAgfJBsjNF_-DIxCGdtjhSP8NeYtzFuuHwoNA/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbymLc_CQxyO9M9nZwuOjm_EHZa4aeiK8tzcLdCYp6Eh2tNTVPn95_UQ5_fYvKjpODr5/exec';
 
 // Function to check busy slots (API)
 async function getBusySlots(date) {
@@ -100,20 +100,27 @@ function formatPhoneNumber(value) {
     const cleaned = value.replace(/\D/g, '');
     let formatted = '';
     if (cleaned.length === 0) return '';
+
     let digits = cleaned;
-    if (cleaned.startsWith('8')) digits = '7' + cleaned.slice(1);
-    else if (!cleaned.startsWith('7') && cleaned.length > 0) digits = '7' + cleaned;
-    formatted = '+' + digits.slice(0, 1);
-    if (digits.length > 1) formatted += ' (' + digits.slice(1, 4);
-    if (digits.length > 4) formatted += ') ' + digits.slice(4, 7);
-    if (digits.length > 7) formatted += '-' + digits.slice(7, 9);
-    if (digits.length > 9) formatted += '-' + digits.slice(9, 11);
+    // Ukrainian format logic
+    if (cleaned.startsWith('380')) digits = cleaned;
+    else if (cleaned.startsWith('0')) digits = '38' + cleaned;
+    else digits = '380' + cleaned;
+
+    digits = digits.substring(0, 12);
+
+    formatted = '+' + digits.slice(0, 3);
+    if (digits.length > 3) formatted += ' (' + digits.slice(3, 5);
+    if (digits.length > 5) formatted += ') ' + digits.slice(5, 8);
+    if (digits.length > 8) formatted += '-' + digits.slice(8, 10);
+    if (digits.length > 10) formatted += '-' + digits.slice(10, 12);
+
     return formatted;
 }
 
 function isValidPhone(phone) {
     const cleaned = phone.replace(/\D/g, '');
-    return cleaned.length === 11;
+    return cleaned.length === 12 && cleaned.startsWith('380');
 }
 
 function isValidName(name) {
@@ -121,17 +128,19 @@ function isValidName(name) {
 }
 
 function formatDate(dateStr) {
-    if (!dateStr) return 'Date not selected';
+    if (!dateStr) return 'Дата не обрана';
     const parts = dateStr.split('-');
-    if (parts.length !== 3) return 'Invalid format';
+    if (parts.length !== 3) return 'Невірний формат';
     const year = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10) - 1;
     const day = parseInt(parts[2], 10);
     const date = new Date(year, month, day);
-    if (isNaN(date.getTime())) return 'Invalid date';
-    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    return `${weekdays[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    if (isNaN(date.getTime())) return 'Невірна дата';
+
+    const weekdays = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+    const months = ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня', 'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня'];
+
+    return `${weekdays[date.getDay()]}, ${day} ${months[date.getMonth()]} ${date.getFullYear()}`;
 }
 
 // Helper to add minutes to "HH:MM" string
@@ -168,7 +177,7 @@ function renderTimeSlots(busySlotsFromApi = []) {
 
     const dateValue = elements.dateInput.value;
     if (!dateValue) {
-        elements.timeSlotsContainer.innerHTML = '<p style="color: var(--tg-theme-hint-color); text-align: center; grid-column: 1/-1;">Select date first</p>';
+        elements.timeSlotsContainer.innerHTML = '<p style="color: var(--tg-theme-hint-color); text-align: center; grid-column: 1/-1;">Спочатку оберіть дату</p>';
         return;
     }
 
@@ -202,14 +211,14 @@ function renderTimeSlots(busySlotsFromApi = []) {
             slotTime.setHours(h, m, 0, 0);
             if (slotTime <= now) {
                 isDisabled = true;
-                tooltip = "Time passed";
+                tooltip = "Час минув";
             }
         }
 
         // Check 2: Is slot itself busy?
         if (!isDisabled && busySlotsFromApi.includes(slot)) {
             isDisabled = true;
-            tooltip = "Already booked";
+            tooltip = "Вже зайнято";
         }
 
         // Check 3: 🔥 DOES IT FIT? (Smart Check)
@@ -223,7 +232,7 @@ function renderTimeSlots(busySlotsFromApi = []) {
                 // If future block is busy
                 if (busySlotsFromApi.includes(timeToCheck)) {
                     isDisabled = true;
-                    tooltip = "Not enough time for service";
+                    tooltip = "Недостатньо часу для послуги";
                     break;
                 }
 
@@ -231,7 +240,7 @@ function renderTimeSlots(busySlotsFromApi = []) {
                 // We check if 'timeToCheck' exists in our generated slots (except the start time)
                 if (i > 0 && !slots.includes(timeToCheck)) {
                     isDisabled = true;
-                    tooltip = "Closing soon";
+                    tooltip = "Скоро зачиняємось";
                     break;
                 }
             }
@@ -243,7 +252,7 @@ function renderTimeSlots(busySlotsFromApi = []) {
         if (isSelected) classes += " selected";
 
         // Additional class for booked to style differently if needed
-        if (tooltip === "Already booked") classes += " booked";
+        if (tooltip === "Вже зайнято") classes += " booked";
 
         return `
             <div class="${classes}"
@@ -303,14 +312,14 @@ function validateCurrentStep() {
     switch (state.currentStep) {
         case 1:
             if (!isValidName(elements.nameInput.value)) {
-                showError('name', 'Enter a valid name (minimum 2 characters)');
+                showError('name', 'Введіть коректне ім\'я (мінімум 2 символи)');
                 isValid = false;
             } else {
                 clearError('name');
                 showSuccess('name');
             }
             if (!isValidPhone(elements.phoneInput.value)) {
-                showError('phone', 'Enter a valid phone number');
+                showError('phone', 'Введіть коректний номер телефону');
                 isValid = false;
             } else {
                 clearError('phone');
@@ -319,7 +328,7 @@ function validateCurrentStep() {
             break;
         case 2:
             if (!elements.serviceSelect.value) {
-                showError('service', 'Select a service');
+                showError('service', 'Оберіть послугу');
                 isValid = false;
             } else {
                 clearError('service');
@@ -327,13 +336,13 @@ function validateCurrentStep() {
             break;
         case 3:
             if (!elements.dateInput.value) {
-                showError('date', 'Select a date');
+                showError('date', 'Оберіть дату');
                 isValid = false;
             } else {
                 clearError('date');
             }
             if (!elements.timeInput.value) {
-                showError('time', 'Select a time');
+                showError('time', 'Оберіть час');
                 isValid = false;
             } else {
                 clearError('time');
@@ -434,8 +443,8 @@ async function submitForm(event) {
         console.error('❌ Error sending data:', error);
         if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
         elements.loadingOverlay.classList.remove('active');
-        if (tg?.showAlert) tg.showAlert('An error occurred while sending data');
-        else alert('An error occurred while sending data');
+        if (tg?.showAlert) tg.showAlert('Виникла помилка при відправці даних');
+        else alert('Виникла помилка при відправці даних');
     }
 }
 
@@ -447,16 +456,16 @@ function showSuccessMessage(formData) {
             <div class="success-icon">
                 <span class="material-icons-round">check_circle</span>
             </div>
-            <h2>Booking Created!</h2>
+            <h2>Запис створено!</h2>
             <div class="success-details">
-                <p><strong>Name:</strong> ${formData.name}</p>
-                <p><strong>Phone:</strong> ${formData.phone}</p>
-                <p><strong>Service:</strong> ${formData.service}</p>
-                <p><strong>Date/Time:</strong> ${formData.datetime}</p>
+                <p><strong>Ім'я:</strong> ${formData.name}</p>
+                <p><strong>Телефон:</strong> ${formData.phone}</p>
+                <p><strong>Послуга:</strong> ${formData.service}</p>
+                <p><strong>Дата/Час:</strong> ${formData.datetime}</p>
             </div>
             <p class="debug-note">⚠️ Debug mode: open in Telegram for real sending</p>
             <button class="btn btn-primary" onclick="this.closest('.success-modal').remove(); location.reload();">
-                Close
+                Закрити
             </button>
         </div>
     `;
@@ -477,8 +486,8 @@ elements.serviceSelect.addEventListener('change', (e) => {
     const duration = selectedOption.dataset.duration;
 
     if (price && duration) {
-        elements.servicePrice.textContent = `${parseInt(price).toLocaleString('ru-RU')} ₽`;
-        elements.serviceDuration.textContent = `${duration} min`;
+        elements.servicePrice.textContent = `${parseInt(price).toLocaleString('uk-UA')} ₴`;
+        elements.serviceDuration.textContent = `${duration} хв`;
         elements.serviceInfo.style.display = 'block';
     } else {
         elements.serviceInfo.style.display = 'none';
@@ -515,7 +524,7 @@ elements.dateInput.addEventListener('change', async (e) => {
     if (date) {
         elements.timeSlotsContainer.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--tg-theme-hint-color);">
-                ⏳ Checking schedule...
+                ⏳ Перевірка розкладу...
             </div>
         `;
         const realBusySlots = await getBusySlots(date);
